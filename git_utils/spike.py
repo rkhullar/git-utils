@@ -5,12 +5,6 @@ import subprocess
 
 PathOrStr = Union[Path, str]
 
-here = Path(__file__).parent
-manifest_path = here / 'single.json'
-target_dir = manifest_path.parent
-with manifest_path.open('r') as f:
-    manifest = json.load(f)
-
 
 def git(*args, cwd: PathOrStr = None) -> str:
     process = subprocess.run(['git', *args], cwd=str(cwd), stdout=subprocess.PIPE)
@@ -19,7 +13,11 @@ def git(*args, cwd: PathOrStr = None) -> str:
 
 
 def url_to_name(url: str) -> str:
-    return url.split('/')[1].split('.git')[0]
+    return url.split(':')[1].split('.git')[0].split('/')[1]
+
+
+def read_suffix(name: str) -> str:
+    return Path(name).suffix.strip('.')
 
 
 def clone(url: str, path: PathOrStr = None, branch: str = None, email: str = None, cwd: PathOrStr = None):
@@ -42,21 +40,39 @@ def clone(url: str, path: PathOrStr = None, branch: str = None, email: str = Non
         git('config', 'user.email', email, cwd=repo_dir)
 
 
-if isinstance(manifest, List):
-    items = manifest
-    config = dict()
-elif isinstance(manifest, Dict):
-    items = manifest['targets']
-    config = manifest['config']
-else:
-    raise ValueError(dict(message="cannot parse manifest"))
+def process(manifest_path: Path):
+    target_dir: Path = manifest_path.parent
+    with manifest_path.open('r') as f:
+        manifest = json.load(f)
 
-config['cwd'] = target_dir
+    if isinstance(manifest, List):
+        items: List = manifest
+        config: Dict = dict()
+    elif isinstance(manifest, Dict):
+        items: List = manifest['targets']
+        config: Dict = manifest['config']
+    else:
+        raise ValueError
 
-for item in items:
-    if isinstance(item, str):
-        params = {**config, **dict(url=item)}
-        clone(**params)
-    elif isinstance(item, Dict):
-        params = {**config, **item}
-        clone(**params)
+    config['cwd'] = target_dir
+
+    for item in items:
+        if isinstance(item, str):
+            suffix: str = read_suffix(item)
+            if suffix == 'git':
+                params = {**config, **dict(url=item)}
+                clone(**params)
+            elif suffix == 'json':
+                print('oh no')
+        elif isinstance(item, Dict):
+            if 'url' in item:
+                params = {**config, **item}
+                clone(**params)
+            elif 'manifest' in item:
+                print('oh no')
+
+
+if __name__ == '__main__':
+    here = Path(__file__).parent
+    manifest_path = here / 'terraform.json'
+    process(manifest_path)
