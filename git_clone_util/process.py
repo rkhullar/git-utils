@@ -1,39 +1,9 @@
-from .utils import run_cmd, PathOrStr
+from .clone import clone
+from .utils import read_suffix
+
 from pathlib import Path
 from typing import Dict, List, Union
 import json
-
-
-def git(*args, cwd: PathOrStr = None) -> str:
-    return run_cmd(['git', *args], cwd=cwd)
-
-
-def url_to_name(url: str) -> str:
-    return url.split(':')[1].split('.git')[0].split('/')[1]
-
-
-def read_suffix(name: str) -> str:
-    return Path(name).suffix.strip('.')
-
-
-def clone(url: str, path: PathOrStr = None, branch: str = None, email: str = None, cwd: PathOrStr = None):
-    # determine local path
-    path: Path = Path(path or url_to_name(url))
-
-    # build arguments
-    args = ["clone"]
-    if branch:
-        args.append('--branch')
-        args.append(branch)
-    args.append(url)
-    args.append(str(path))
-
-    # execute clone
-    git(*args, cwd=cwd)
-
-    if email:
-        repo_dir: Path = (cwd or Path.cwd()) / path
-        git('config', 'user.email', email, cwd=repo_dir)
 
 
 def process(manifest_path: Path, target_dir: Path = None, parent_config: Dict = None):

@@ -1,4 +1,4 @@
-from .core import process
+from .process import process
 from pathlib import Path
 
 
