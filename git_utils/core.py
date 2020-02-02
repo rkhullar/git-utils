@@ -1,15 +1,11 @@
+from .utils import run_cmd, PathOrStr
 from pathlib import Path
 from typing import Dict, List, Union
 import json
-import subprocess
-
-PathOrStr = Union[Path, str]
 
 
 def git(*args, cwd: PathOrStr = None) -> str:
-    process = subprocess.run(['git', *args], cwd=str(cwd), stdout=subprocess.PIPE)
-    output = process.stdout.decode('utf-8').strip()
-    return output
+    return run_cmd(['git', *args], cwd=cwd)
 
 
 def url_to_name(url: str) -> str:
@@ -82,9 +78,3 @@ def process(manifest_path: Path, target_dir: Path = None, parent_config: Dict = 
                 child_work_dir = target_dir / item.get('path', child_path.stem)
                 child_work_dir.mkdir(exist_ok=True, parents=True)
                 process(manifest_path=child_path, target_dir=child_work_dir, parent_config=config.copy())
-
-
-if __name__ == '__main__':
-    here = Path(__file__).parent
-    manifest_path = here / 'terraform.json'
-    process(manifest_path)
