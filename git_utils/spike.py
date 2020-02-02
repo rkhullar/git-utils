@@ -42,9 +42,21 @@ def clone(url: str, path: PathOrStr = None, branch: str = None, email: str = Non
         git('config', 'user.email', email, cwd=repo_dir)
 
 
-for item in manifest:
+if isinstance(manifest, List):
+    items = manifest
+    config = dict()
+elif isinstance(manifest, Dict):
+    items = manifest['targets']
+    config = manifest['config']
+else:
+    raise ValueError(dict(message="cannot parse manifest"))
+
+config['cwd'] = target_dir
+
+for item in items:
     if isinstance(item, str):
-        print(item)
-        clone(url=item, cwd=target_dir)
+        params = {**config, **dict(url=item)}
+        clone(**params)
     elif isinstance(item, Dict):
-        clone(**item, cwd=target_dir)
+        params = {**config, **item}
+        clone(**params)
