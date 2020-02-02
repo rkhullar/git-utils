@@ -65,27 +65,23 @@ def process(manifest_path: Path, target_dir: Path = None, parent_config: Dict = 
             if suffix == 'git':
                 params = {**config, **dict(url=item)}
                 clone(**params)
+
             elif suffix == 'json':
                 child_path: Path = target_dir / item
-                params = dict(
-                    manifest_path=child_path,
-                    target_dir=target_dir / child_path.name,
-                    parent_config=config.copy()
-                )
-                process(**params)
+                child_work_dir = target_dir / child_path.stem
+                child_work_dir.mkdir(exist_ok=True, parents=True)
+                process(manifest_path=child_path, target_dir=child_work_dir, parent_config=config.copy())
 
         elif isinstance(item, Dict):
             if 'url' in item:
                 params = {**config, **item}
                 clone(**params)
+
             elif 'manifest' in item:
                 child_path: Path = target_dir / item['manifest']
-                params = dict(
-                    manifest_path=child_path,
-                    target_dir=target_dir / item.get('path', child_path.name),
-                    parent_config=config.copy()
-                )
-                process(**params)
+                child_work_dir = target_dir / item.get('path', child_path.stem)
+                child_work_dir.mkdir(exist_ok=True, parents=True)
+                process(manifest_path=child_path, target_dir=child_work_dir, parent_config=config.copy())
 
 
 if __name__ == '__main__':
