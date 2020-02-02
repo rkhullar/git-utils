@@ -40,17 +40,20 @@ def clone(url: str, path: PathOrStr = None, branch: str = None, email: str = Non
         git('config', 'user.email', email, cwd=repo_dir)
 
 
-def process(manifest_path: Path):
-    target_dir: Path = manifest_path.parent
+def process(manifest_path: Path, target_dir: Path = None, parent_config: Dict = None):
+    parent_config: Dict = parent_config or dict()
+    target_dir: Path = target_dir or manifest_path.parent
     with manifest_path.open('r') as f:
-        manifest = json.load(f)
+        manifest: Union[List, Dict] = json.load(f)
 
     if isinstance(manifest, List):
         items: List = manifest
-        config: Dict = dict()
+        config: Dict = parent_config.copy()
+
     elif isinstance(manifest, Dict):
         items: List = manifest['targets']
-        config: Dict = manifest['config']
+        config: Dict = {**parent_config, **manifest['config']}
+
     else:
         raise ValueError
 
@@ -63,13 +66,26 @@ def process(manifest_path: Path):
                 params = {**config, **dict(url=item)}
                 clone(**params)
             elif suffix == 'json':
-                print('oh no')
+                child_path: Path = target_dir / item
+                params = dict(
+                    manifest_path=child_path,
+                    target_dir=target_dir / child_path.name,
+                    parent_config=config.copy()
+                )
+                process(**params)
+
         elif isinstance(item, Dict):
             if 'url' in item:
                 params = {**config, **item}
                 clone(**params)
             elif 'manifest' in item:
-                print('oh no')
+                child_path: Path = target_dir / item['manifest']
+                params = dict(
+                    manifest_path=child_path,
+                    target_dir=target_dir / item.get('path', child_path.name),
+                    parent_config=config.copy()
+                )
+                process(**params)
 
 
 if __name__ == '__main__':
