@@ -24,6 +24,7 @@ def process(manifest_path: Path, target_dir: Path = None, parent_config: Dict = 
         raise ValueError
 
     config['cwd'] = target_dir
+    config['raise_errors'] = False
 
     for item in items:
         if isinstance(item, str):
