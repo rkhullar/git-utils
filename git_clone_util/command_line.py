@@ -1,5 +1,7 @@
-from .process import process
+from .process import process as handle_clone
+from .scan import main as handle_scan
 from argparse import ArgumentParser, Namespace
+from getpass import getpass
 from pathlib import Path
 
 
@@ -12,7 +14,11 @@ def build_parser() -> ArgumentParser:
     clone_parser.add_argument('-m', '--manifest')
 
     scan_parser = subparsers.add_parser('scan')
-    scan_parser.add_argument('-p', '--platform')
+    scan_parser.add_argument('-d', '--platform', required=True, choices=['bitbucket'])
+    scan_parser.add_argument('-u', '--username', required=True)
+    scan_parser.add_argument('-p', '--password', required=False)
+    scan_parser.add_argument('-r', '--role', required=True, choices=['admin', 'contributor', 'member', 'owner'])
+    scan_parser.add_argument('-o', '--output', required=False)
 
     return parser
 
@@ -22,6 +28,7 @@ def main():
     args: Namespace = parser.parse_args()
     action: str = args.action
     if action == 'clone':
-        process(manifest_path=Path(args.manifest))
+        handle_clone(manifest_path=Path(args.manifest))
     elif action == 'scan':
-        print('coming soon')
+        password = args.password or getpass()
+        handle_scan(username=args.username, password=password, platform=args.platform, role=args.role, output=args.output)

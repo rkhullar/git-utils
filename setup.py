@@ -28,14 +28,14 @@ def read_python_version() -> str:
     return pipfile.load().data['_meta']['requires']['python_version']
 
 
-setup(name='aws-sso',
+setup(name='git-utils',
       version=infer_version(),
-      url='https://github.com/rkhullar/aws-sso',
+      url='https://github.com/rkhullar/git-utils',
       author='Rajan Khullar',
       author_email='rkhullar03@gmail.com',
       long_description=read_file('readme.md'),
       long_description_content_type='text/markdown',
-      keywords='aws sso',
+      keywords='git bitbucket',
       license='MIT',
       packages=find_packages(exclude=["*.tests", "*.tests.*", "tests.*", "tests"]),
       python_requires='~='+read_python_version(),
@@ -44,5 +44,5 @@ setup(name='aws-sso',
       zip_safe=False,
       test_suite='nose.collector',
       tests_require=['nose', 'parameterized'],
-      entry_points={'console_scripts': ['aws-sso=aws_sso.command_line:main']}
+      entry_points={'console_scripts': ['git-util=git_clone_util.command_line:main']}
       )

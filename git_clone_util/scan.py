@@ -1,4 +1,6 @@
 from typing import Dict, Iterator, NamedTuple, Optional
+from pathlib import Path
+import csv
 import requests
 
 
@@ -25,7 +27,6 @@ class RepoInfo(NamedTuple):
 
 
 class Bitbucket:
-
     api = 'https://api.bitbucket.org/2.0'
 
     def __init__(self, username: str, password: str):
@@ -54,17 +55,32 @@ class Bitbucket:
                 break
 
 
-if __name__ == '__main__':
-    from pathlib import Path
-    import json
-
-    auth_path = Path(__file__).parents[1] / 'local' / 'credentials.json'
-    with auth_path.open('r') as f:
-        auth_data = json.load(f)
-
-    api = Bitbucket(**auth_data)
-    for repo_info in api.iter_repos(role='owner'):
+def build_main_callback(output: str = None):
+    def print_clone_url(repo_info):
         print(repo_info.clone_url)
 
-    for repo_info in api.iter_repos(role='member'):
-        print(repo_info.clone_url)
+    def append_csv(repo_info):
+        with Path(output).open('a') as f:
+            csv_writer = csv.DictWriter(f, list(RepoInfo._fields))
+            csv_writer.writerow(repo_info._asdict())
+
+    return append_csv if output else print_clone_url
+
+
+def prepare_csv(output: str):
+    output_path = Path(output)
+    if output_path.exists():
+        output_path.unlink()
+    with output_path.open('w') as f:
+        csv_writer = csv.DictWriter(f, list(RepoInfo._fields))
+        csv_writer.writeheader()
+
+
+def main(username: str, password: str, platform: str, role: str, output: str = None):
+    fn = build_main_callback(output)
+    if output:
+        prepare_csv(output)
+    if platform == 'bitbucket':
+        api = Bitbucket(username=username, password=password)
+        for repo_info in api.iter_repos(role=role):
+            fn(repo_info)
