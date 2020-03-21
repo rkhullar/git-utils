@@ -2,5 +2,5 @@
 
 ### Example Usage
 ``` sh
-$ pip install git-utils
+$ pip install git-tools
 ```

@@ -28,9 +28,9 @@ def read_python_version() -> str:
     return pipfile.load().data['_meta']['requires']['python_version']
 
 
-setup(name='git-utils',
+setup(name='git-tools',
       version=infer_version(),
-      url='https://github.com/rkhullar/git-utils',
+      url='https://github.com/rkhullar/git-tools',
       author='Rajan Khullar',
       author_email='rkhullar03@gmail.com',
       long_description=read_file('readme.md'),
@@ -44,5 +44,5 @@ setup(name='git-utils',
       zip_safe=False,
       test_suite='nose.collector',
       tests_require=['nose', 'parameterized'],
-      entry_points={'console_scripts': ['git-util=git_clone_util.command_line:main']}
+      entry_points={'console_scripts': ['git-tool=git_tools.command_line:main']}
       )
